@@ -1,3 +1,14 @@
+/**
+ * @file shell.c
+ * @brief Implementación principal de la shell DWIMSH
+ * 
+ * Este archivo contiene la implementación de las funciones principales
+ * de la shell, incluyendo el bucle principal, manejo de señales,
+ * ejecución de comandos y gestión del prompt.
+ * 
+ * @author Walther Carrasco
+ */
+
 #include "shell.h"
 #include "builtins.h"
 #include "suggestions.h"
@@ -12,6 +23,7 @@ volatile sig_atomic_t suggestion_interrupted = 0;
 
 /**
  * @brief Genera el prompt con color según el estado del último comando
+ * @return Cadena con el prompt formateado (verde si exitoso, rojo si falló)
  */
 char* get_colored_prompt() {
     static char prompt[20];
@@ -27,6 +39,10 @@ char* get_colored_prompt() {
 
 /**
  * @brief Maneja la señal SIGINT (Ctrl+C)
+ * @param sig Número de señal recibida
+ * 
+ * Si hay un proceso en primer plano, envía la señal a ese proceso.
+ * Si no, muestra un nuevo prompt limpio.
  */
 void handle_sigint(int sig) {
     if (foreground_process_running && current_child_pid > 0) {
@@ -45,6 +61,10 @@ void handle_sigint(int sig) {
 
 /**
  * @brief Carga la lista de comandos disponibles del sistema
+ * 
+ * Busca en /usr/bin todos los archivos ejecutables y los carga en
+ * la lista global de comandos disponibles. También añade los comandos
+ * built-in a la lista.
  */
 void bin_commands() {
     const char *path = "/usr/bin";
@@ -108,6 +128,8 @@ void bin_commands() {
 
 /**
  * @brief Verifica si un comando existe en el PATH del sistema
+ * @param command Nombre del comando a verificar
+ * @return 1 si existe, 0 si no existe
  */
 char command_exists(const char *command) {
     char *path = getenv("PATH");
@@ -132,6 +154,12 @@ char command_exists(const char *command) {
 
 /**
  * @brief Ejecuta un comando externo o built-in
+ * @param command Nombre del comando a ejecutar
+ * @param args Arreglo de argumentos (incluyendo el comando)
+ * @param background Indica si el comando se ejecuta en segundo plano (1) o primer plano (0)
+ * 
+ * Primero verifica si es un comando built-in, si no, lo ejecuta como proceso externo.
+ * Actualiza last_command_status con el estado de salida del comando.
  */
 void run_command(const char *command, char *args[], int background) {
     // Primero verificar si es un comando built-in
@@ -180,6 +208,10 @@ void run_command(const char *command, char *args[], int background) {
 
 /**
  * @brief Función principal de la shell
+ * @return Estado de salida de la shell
+ * 
+ * Implementa el bucle principal de la shell, leyendo comandos del usuario,
+ * procesándolos y ejecutándolos.
  */
 int main(void) {
     char *inputBuffer;

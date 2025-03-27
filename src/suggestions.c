@@ -1,7 +1,20 @@
+/**
+ * @file suggestions.c
+ * @brief Implementación del sistema de sugerencias de comandos
+ * 
+ * Este archivo contiene la implementación de las funciones que permiten
+ * sugerir comandos similares cuando el usuario introduce un comando
+ * que no existe. Utiliza algoritmos como la distancia de Levenshtein
+ * y detección de anagramas.
+ */
+
 #include "suggestions.h"
 
 /**
  * @brief Devuelve el valor mínimo entre dos números de punto flotante
+ * @param a Primer número
+ * @param b Segundo número
+ * @return El menor de los dos números
  */
 float mi_fmin(float a, float b) {
     return (a < b) ? a : b;
@@ -9,6 +22,12 @@ float mi_fmin(float a, float b) {
 
 /**
  * @brief Calcula la distancia de Levenshtein entre dos cadenas
+ * @param s1 Primera cadena
+ * @param s2 Segunda cadena
+ * @return Distancia de Levenshtein (número de ediciones necesarias)
+ * 
+ * Implementa el algoritmo de distancia de Levenshtein para medir
+ * la similitud entre dos cadenas.
  */
 int levenshtein(const char *s1, const char *s2) {
     int len1 = strlen(s1);
@@ -34,6 +53,12 @@ int levenshtein(const char *s1, const char *s2) {
 
 /**
  * @brief Determina si dos cadenas son anagramas entre sí
+ * @param s1 Primera cadena
+ * @param s2 Segunda cadena
+ * @return 1 si son anagramas, 0 si no
+ * 
+ * Dos cadenas son anagramas si contienen exactamente los mismos
+ * caracteres pero en diferente orden.
  */
 int is_anagram(const char *s1, const char *s2) {
     if (strlen(s1) != strlen(s2)) {
@@ -64,6 +89,10 @@ int is_anagram(const char *s1, const char *s2) {
 
 /**
  * @brief Maneja la señal SIGINT durante el proceso de sugerencias
+ * @param sig Número de señal recibida
+ * 
+ * Establece la bandera suggestion_interrupted para cancelar el
+ * proceso de sugerencias.
  */
 void sigint_handler_suggest(int sig) {
     suggestion_interrupted = 1;
@@ -72,6 +101,14 @@ void sigint_handler_suggest(int sig) {
 
 /**
  * @brief Sugiere comandos similares cuando se introduce uno que no existe
+ * @param command Comando introducido por el usuario
+ * @param args Argumentos del comando (se modificará args[0] si se acepta una sugerencia)
+ * 
+ * Busca comandos similares utilizando dos métodos:
+ * 1. Busca anagramas exactos
+ * 2. Busca comandos con distancia de Levenshtein pequeña
+ * 
+ * Luego pregunta al usuario si desea utilizar alguna de las sugerencias.
  */
 void suggest_command(const char *command, char *args[]) {
     char *suggestions[20];
